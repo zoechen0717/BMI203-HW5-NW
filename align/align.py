@@ -100,79 +100,148 @@ class NeedlemanWunsch:
 
     def align(self, seqA: str, seqB: str) -> Tuple[float, str, str]:
         """
-        Performs global sequence alignment using the Needleman-Wunsch algorithm.
+        This function performs global sequence alignment of two strings
+        using the Needleman-Wunsch Algorithm with affine gap penalties
+
+        Parameters:
+            seqA: str
+                the first string to be aligned
+            seqB: str
+                the second string to be aligned with seqA
+
+        Returns:
+            (alignment score, seqA alignment, seqB alignment) : Tuple[float, str, str]
+                the score and corresponding strings for the alignment of seqA and seqB
         """
+        # Resetting alignment in case method is called more than once
+        self.seqA_align = ""
+        self.seqB_align = ""
+        self.alignment_score = 0
         self._seqA = seqA
         self._seqB = seqB
-        m, n = len(seqA), len(seqB)
 
-        # Initialize alignment and gap matrices
-        self._align_matrix = np.zeros((m + 1, n + 1))
-        self._gapA_matrix = np.zeros((m + 1, n + 1))
-        self._gapB_matrix = np.zeros((m + 1, n + 1))
-        self._back = np.zeros((m + 1, n + 1), dtype=int)
+        lenA, lenB = len(seqA), len(seqB)
 
-        # First row of align matrix
-        for i in range(1, m + 1):
-            self._align_matrix[i][0] = self.gap_open + (i - 1) * self.gap_extend
-            self._gapA_matrix[i][0] = self._align_matrix[i][0]  # Initialize gapA
-            self._gapB_matrix[i][0] = float('-inf')  # No valid transition to _gapB_matrix
-            self._back[i][0] = 1  # Backtracking marker
+        # Initialize score matrices
+        self._align_matrix = np.full((lenA+1, lenB+1), -np.inf)
+        self._gapA_matrix = np.full((lenA+1, lenB+1), -np.inf)  # Gaps in A
+        self._gapB_matrix = np.full((lenA+1, lenB+1), -np.inf)  # Gaps in B
 
-        # First column of align matrix
-        for j in range(1, n + 1):
-            self._align_matrix[0][j] = self.gap_open + (j - 1) * self.gap_extend
-            self._gapB_matrix[0][j] = self._align_matrix[0][j]  # Initialize gapB
-            self._gapA_matrix[0][j] = float('-inf')  # No valid transition to _gapA_matrix
-            self._back[0][j] = 2  # Backtracking marker
+        # Initialize traceback matrices
+        self._back = np.zeros((lenA+1, lenB+1), dtype=object)
+        self._back_A = np.zeros((lenA+1, lenB+1), dtype=object)
+        self._back_B = np.zeros((lenA+1, lenB+1), dtype=object)
 
-        # Fill alignment and backtracking matrices
-        for i in range(1, m + 1):
-            for j in range(1, n + 1):
-                match_score = self.sub_dict.get((seqA[i-1], seqB[j-1]), -1)
-                match = self._align_matrix[i-1][j-1] + match_score
-                gapA = max(self._align_matrix[i-1][j] + self.gap_open, self._gapA_matrix[i-1][j] + self.gap_extend)
-                gapB = max(self._align_matrix[i][j-1] + self.gap_open, self._gapB_matrix[i][j-1] + self.gap_extend)
+        # Base cases
+        self._align_matrix[0][0] = 0
 
-                self._align_matrix[i][j] = max(match, gapA, gapB)
-                self._gapA_matrix[i][j] = gapA
-                self._gapB_matrix[i][j] = gapB
+        # Initialize gapA matrix first row (gaps in A)
+        for j in range(1, lenB+1):
+            self._gapA_matrix[0][j] = self.gap_open + (j-1)*self.gap_extend
+            self._back_A[0][j] = ('gapA', 0, j-1)
 
-                if self._align_matrix[i][j] == match:
-                    self._back[i][j] = 0
-                elif self._align_matrix[i][j] == gapA:
-                    self._back[i][j] = 1
+        # Initialize gapB matrix first column (gaps in B)
+        for i in range(1, lenA+1):
+            self._gapB_matrix[i][0] = self.gap_open + (i-1)*self.gap_extend
+            self._back_B[i][0] = ('gapB', i-1, 0)
+
+        # Fill matrices
+        for i in range(1, lenA+1):
+            for j in range(1, lenB+1):
+                # Update match/mismatch matrix
+                score = self.sub_dict.get((seqA[i-1], seqB[j-1]), 0)
+
+                align_prev = self._align_matrix[i-1][j-1] + score
+                gapA_prev = self._gapA_matrix[i-1][j-1] + score
+                gapB_prev = self._gapB_matrix[i-1][j-1] + score
+                max_val = max(align_prev, gapA_prev, gapB_prev)
+                self._align_matrix[i][j] = max_val
+
+                # Record traceback
+                if max_val == align_prev:
+                    self._back[i][j] = ('align', i-1, j-1)
+                elif max_val == gapA_prev:
+                    self._back[i][j] = ('gapA', i-1, j-1)
                 else:
-                    self._back[i][j] = 2
+                    self._back[i][j] = ('gapB', i-1, j-1)
+
+                # Update gapA matrix (gaps in A)
+                extend = self._gapA_matrix[i][j-1] + self.gap_extend
+                new_gap = self._align_matrix[i][j-1] + self.gap_open
+                max_gapA = max(extend, new_gap)
+                self._gapA_matrix[i][j] = max_gapA
+
+                if max_gapA == extend:
+                    self._back_A[i][j] = ('gapA', i, j-1)
+                else:
+                    self._back_A[i][j] = ('align', i, j-1)
+
+                # Update gapB matrix (gaps in B)
+                extend = self._gapB_matrix[i-1][j] + self.gap_extend
+                new_gap = self._align_matrix[i-1][j] + self.gap_open
+                max_gapB = max(extend, new_gap)
+                self._gapB_matrix[i][j] = max_gapB
+
+                if max_gapB == extend:
+                    self._back_B[i][j] = ('gapB', i-1, j)
+                else:
+                    self._back_B[i][j] = ('align', i-1, j)
+
+        # Determine final score
+        self.alignment_score = max(self._align_matrix[lenA][lenB],
+                                  self._gapA_matrix[lenA][lenB],
+                                  self._gapB_matrix[lenA][lenB])
 
         return self._backtrace()
 
     def _backtrace(self) -> Tuple[float, str, str]:
         """
-        Traces back through the back matrix to construct the final alignment.
+        Trace back through the matrices to construct the alignment
+
+        Returns:
+            (alignment score, seqA alignment, seqB alignment) : Tuple[float, str, str]
         """
         i, j = len(self._seqA), len(self._seqB)
-        self.alignment_score = self._align_matrix[i][j]
-        seqA_aligned, seqB_aligned = "", ""
+        alignA, alignB = [], []
+
+        # Determine starting matrix
+        current = None
+        max_score = max(self._align_matrix[i][j],
+                        self._gapA_matrix[i][j],
+                        self._gapB_matrix[i][j])
+
+        if max_score == self._align_matrix[i][j]:
+            current = ('align', i, j)
+        elif max_score == self._gapA_matrix[i][j]:
+            current = ('gapA', i, j)
+        else:
+            current = ('gapB', i, j)
 
         while i > 0 or j > 0:
-            if i > 0 and j > 0 and self._back[i][j] == 0:
-                seqA_aligned = self._seqA[i-1] + seqA_aligned
-                seqB_aligned = self._seqB[j-1] + seqB_aligned
-                i -= 1
-                j -= 1
-            elif i > 0 and self._back[i][j] == 1:
-                seqA_aligned = self._seqA[i-1] + seqA_aligned
-                seqB_aligned = "-" + seqB_aligned
-                i -= 1
-            else:
-                seqA_aligned = "-" + seqA_aligned
-                seqB_aligned = self._seqB[j-1] + seqB_aligned
-                j -= 1
+            matrix_type, i, j = current
 
-        self.seqA_align, self.seqB_align = seqA_aligned, seqB_aligned
-        
-        return self.alignment_score, self.seqA_align, self.seqB_align
+            if matrix_type == 'align':
+                alignA.append(self._seqA[i-1])
+                alignB.append(self._seqB[j-1])
+                current = self._back[i][j]
+                i -= 1
+                j -= 1
+            elif matrix_type == 'gapA':
+                alignA.append('-')
+                alignB.append(self._seqB[j-1])
+                current = self._back_A[i][j]
+                j -= 1
+            elif matrix_type == 'gapB':
+                alignA.append(self._seqA[i-1])
+                alignB.append('-')
+                current = self._back_B[i][j]
+                i -= 1
+
+        # Reverse alignments
+        self.seqA_align = ''.join(reversed(alignA))
+        self.seqB_align = ''.join(reversed(alignB))
+
+        return (self.alignment_score, self.seqA_align, self.seqB_align)
 
 
 def read_fasta(fasta_file: str) -> Tuple[str, str]:
