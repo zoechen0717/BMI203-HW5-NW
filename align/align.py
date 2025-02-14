@@ -128,20 +128,19 @@ class NeedlemanWunsch:
         # Fill matrices
         for i in range(1, m + 1):
             for j in range(1, n + 1):
-                # Compute match/mismatch score
-                match_score = self.sub_dict.get((seqA[i-1], seqB[j-1]), -1)
+                match_score = self.sub_dict.get((seqA[i-1], seqB[j-1]), -1)  # Ensure substitution score is correct
                 match = self._align_matrix[i-1][j-1] + match_score
 
-                # Compute gap penalties
+                # Properly calculate gap penalties
                 gapA = max(self._align_matrix[i-1][j] + self.gap_open, self._gapA_matrix[i-1][j] + self.gap_extend)
                 gapB = max(self._align_matrix[i][j-1] + self.gap_open, self._gapB_matrix[i][j-1] + self.gap_extend)
 
-                # Update matrices
+                # Store max score in alignment matrix
                 self._align_matrix[i][j] = max(match, gapA, gapB)
                 self._gapA_matrix[i][j] = gapA
                 self._gapB_matrix[i][j] = gapB
 
-                # Track backtrace path
+                # Correctly update the backtrace path
                 if self._align_matrix[i][j] == match:
                     self._back[i][j] = 0  # Match/mismatch
                 elif self._align_matrix[i][j] == gapA:
