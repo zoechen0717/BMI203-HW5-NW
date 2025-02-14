@@ -148,6 +148,7 @@ class NeedlemanWunsch:
                 else:
                     self._back[i][j] = 2  # Gap in seqA
 
+
         return self._backtrace()
 
     def _backtrace(self) -> Tuple[float, str, str]:
