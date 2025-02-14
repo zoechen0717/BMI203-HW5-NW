@@ -15,7 +15,7 @@ def test_nw_alignment():
     seq1, _ = read_fasta("./data/test_seq1.fa")
     seq2, _ = read_fasta("./data/test_seq2.fa")
 
-    nw = NeedlemanWunsch("./data/BLOSUM62.txt", gap_open=-10, gap_extend=-1)
+    nw = NeedlemanWunsch("./substitution_matrices/BLOSUM62.mat", gap_open=-10, gap_extend=-1)
     nw.align(seq1, seq2)
 
     assert nw._align_matrix is not None

@@ -23,7 +23,7 @@ def main():
         br_header: br_seq,
         tt_header: tt_seq}
     # Initialize Needleman-Wunsch with BLOSUM62 matrix and gap penalties
-    nw = NeedlemanWunsch("./substitution/BLOSUM62.mat", gap_open=-10, gap_extend=-1)
+    nw = NeedlemanWunsch("./substitution_matrices/BLOSUM62.mat", gap_open=-10, gap_extend=-1)
 
     # Perform alignments and store scores
     scores = {}
