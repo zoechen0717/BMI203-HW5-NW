@@ -136,7 +136,8 @@ class NeedlemanWunsch:
 
         # Backtracing matrixes
         self._back = np.zeros((m + 1, n + 1), dtype=int)
-
+        #self._back_A = np.zeros((lenA+1, lenB+1), dtype=object)
+        #self._back_B = np.zeros((lenA+1, lenB+1), dtype=object)
 
         # TODO: Implement global alignment here
         # This NW alignment code is inspired by https://github.com/ahishsujay/Sequence_Alignment/blob/master/nwAlign.py
@@ -146,10 +147,13 @@ class NeedlemanWunsch:
         for i in range(1, m + 1):
             self._align_matrix[i][0] = self.gap_open + (i - 1) * self.gap_extend
             self._back[i][0] = 1 # Backtracking marker
+            #self._back_B[i][0] = ('gapB', i-1, 0)
+
         # first col of align matrix
         for j in range(1, n + 1):
             self._align_matrix[0][j] = self.gap_open + (j - 1) * self.gap_extend
             self._back[0][j] = 2 # Backtracking marker
+            #self._back_A[0][j] = ('gapA', 0, j-1)
 
         # Fill alignment and backtracking matrices
         for i in range(1, m + 1):
@@ -161,16 +165,16 @@ class NeedlemanWunsch:
                 gapB = max(self._align_matrix[i][j-1] + self.gap_open, self._gapB_matrix[i][j-1] + self.gap_extend)
 
 
-                self._align_matrix[i][j] = max(match, gapA, gapB) # Find max score
-                if self._align_matrix[i][j] == match:
-                    # 0 indicates a match/mismatch in alignment
-                    self._back[i][j] = 0
-                        elif self._align_matrix[i][j] == gapA:
-                    # 1 indicates a gap in seqB
-                    self._back[i][j] = 1
-                        else:
-                    # 2 indicates a gap in seqA
-                    self._back[i][j] = 2
+        self._align_matrix[i][j] = max(match, gapA, gapB) # Find max score
+        if self._align_matrix[i][j] == match:
+            # 0 indicates a match/mismatch in alignment
+            self._back[i][j] = 0
+                elif self._align_matrix[i][j] == gapA:
+            # 1 indicates a gap in seqB
+            self._back[i][j] = 1
+                else:
+            # 2 indicates a gap in seqA
+            self._back[i][j] = 2
 
         return self._backtrace()
 
