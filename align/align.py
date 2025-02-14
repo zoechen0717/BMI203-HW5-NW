@@ -111,24 +111,20 @@ class NeedlemanWunsch:
 
         # Initialize alignment and gap matrices
         self._align_matrix = np.zeros((lenA + 1, lenB + 1))
-        self._gapA_matrix = np.zeros((lenA + 1, lenB + 1))
-        self._gapB_matrix = np.zeros((lenA + 1, lenB + 1))
+        self._gapA_matrix = np.full((lenA + 1, lenB + 1), float('-inf'))
+        self._gapB_matrix = np.full((lenA + 1, lenB + 1), float('-inf'))
         self._back = np.zeros((lenA + 1, lenB + 1), dtype=int)
-        self._back_A = np.zeros((lenA + 1, lenB + 1), dtype=int)
-        self._back_B = np.zeros((lenA + 1, lenB + 1), dtype=int)
 
         # Initialize gap penalties in the first row and column
         for i in range(1, lenA + 1):
             self._align_matrix[i][0] = self.gap_open + (i - 1) * self.gap_extend
+            self._gapA_matrix[i][0] = self._align_matrix[i][0]
             self._back[i][0] = 1  # Indicates a gap in seqB
-            self._back_A[i][0] = 1  # Track gaps specifically in seqB
-            self._back_B[i][0] = 0  # No gap in seqA
 
         for j in range(1, lenB + 1):
             self._align_matrix[0][j] = self.gap_open + (j - 1) * self.gap_extend
+            self._gapB_matrix[0][j] = self._align_matrix[0][j]
             self._back[0][j] = 2  # Indicates a gap in seqA
-            self._back_A[0][j] = 0  # No gap in seqB
-            self._back_B[0][j] = 1  # Track gaps specifically in seqA
 
         # Fill alignment and backtracking matrices
         for i in range(1, lenA + 1):
@@ -138,6 +134,8 @@ class NeedlemanWunsch:
                 gapB = max(self._align_matrix[i][j-1] + self.gap_open, self._gapB_matrix[i][j-1] + self.gap_extend)
 
                 self._align_matrix[i][j] = max(match, gapA, gapB)
+                self._gapA_matrix[i][j] = gapA
+                self._gapB_matrix[i][j] = gapB
 
                 if self._align_matrix[i][j] == match:
                     self._back[i][j] = 0
@@ -176,7 +174,6 @@ class NeedlemanWunsch:
         self.seqB_align = ''.join(reversed(seqB_align))
 
         return self.alignment_score, self.seqA_align, self.seqB_align
-
 
 def read_fasta(fasta_file: str) -> Tuple[str, str]:
     """
