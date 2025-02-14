@@ -147,7 +147,7 @@ class NeedlemanWunsch:
 
         return self._backtrace()
 
-        def _backtrace(self) -> Tuple[float, str, str]:
+    def _backtrace(self) -> Tuple[float, str, str]:
         """
         Traces back through the back matrix to construct the final alignment.
         """
