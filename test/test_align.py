@@ -14,8 +14,39 @@ def test_nw_alignment():
     """
     seq1, _ = read_fasta("./data/test_seq1.fa")
     seq2, _ = read_fasta("./data/test_seq2.fa")
-    pass
-    
+
+    nw = NeedlemanWunsch("./data/BLOSUM62.txt", gap_open=-10, gap_extend=-1)
+    nw.align(seq1, seq2)
+
+    assert nw._align_matrix is not None
+    assert nw._gapA_matrix is not None
+    assert nw._gapB_matrix is not None
+
+            expected_align_matrix = np.array([
+        [0, -10, -11, -12],
+        [-10, 5, -5, -6],
+        [-11, -5, -1, -2],
+        [-12, -6, 10, 0],
+        [-13, -7, 0, 15]
+    ])
+    expected_gapA_matrix = np.array([
+        [0, -10, -20, -30],
+        [-10, -15, -25, -35],
+        [-20, -25, -30, -40],
+        [-30, -35, -45, -50],
+        [-40, -45, -55, -60]
+    ])
+    expected_gapB_matrix = np.array([
+        [0, -10, -11, -12],
+        [-10, -15, -16, -17],
+        [-11, -16, -17, -18],
+        [-12, -17, -18, -19],
+        [-13, -18, -19, -20]
+    ])
+
+    assert (nw._align_matrix == expected_align_matrix).all(), "Alignment matrix does not match expected values."
+    assert (nw._gapA_matrix == expected_gapA_matrix).all(), "GapA matrix does not match expected values."
+    assert (nw._gapB_matrix == expected_gapB_matrix).all(), "GapB matrix does not match expected values."
 
 def test_nw_backtrace():
     """
@@ -27,8 +58,3 @@ def test_nw_backtrace():
     """
     seq3, _ = read_fasta("./data/test_seq3.fa")
     seq4, _ = read_fasta("./data/test_seq4.fa")
-    pass
-
-
-
-
