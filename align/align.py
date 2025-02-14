@@ -108,21 +108,23 @@ class NeedlemanWunsch:
 
         # Initialize alignment and gap matrices
         self._align_matrix = np.zeros((m + 1, n + 1))
-        self._gapA_matrix = np.full((m + 1, n + 1), float('-inf'))  # Initialize with -inf
-        self._gapB_matrix = np.full((m + 1, n + 1), float('-inf'))
+        self._gapA_matrix = np.zeros((m + 1, n + 1))
+        self._gapB_matrix = np.zeros((m + 1, n + 1))
         self._back = np.zeros((m + 1, n + 1), dtype=int)
 
-        # First row of align matrix
+        # First row of align matrix (gap in seqA)
         for i in range(1, m + 1):
             self._align_matrix[i][0] = self.gap_open + (i - 1) * self.gap_extend
-            self._gapA_matrix[i][0] = self._align_matrix[i][0]  # Correctly initialize gapA
-            self._back[i][0] = 1  # Backtracking marker
+            self._gapA_matrix[i][0] = self.gap_open + (i - 1) * self.gap_extend  # Fix first column initialization
+            self._gapB_matrix[i][0] = float('-inf')  # No valid transition
+            self._back[i][0] = 1  # Gap in seqB
 
-        # First column of align matrix
+        # First column of align matrix (gap in seqB)
         for j in range(1, n + 1):
             self._align_matrix[0][j] = self.gap_open + (j - 1) * self.gap_extend
-            self._gapB_matrix[0][j] = self._align_matrix[0][j]  # Correctly initialize gapB
-            self._back[0][j] = 2  # Backtracking marker
+            self._gapB_matrix[0][j] = self.gap_open + (j - 1) * self.gap_extend  # Fix first row initialization
+            self._gapA_matrix[0][j] = float('-inf')  # No valid transition
+            self._back[0][j] = 2  # Gap in seqA
 
         # Fill alignment and backtracking matrices
         for i in range(1, m + 1):
@@ -130,7 +132,7 @@ class NeedlemanWunsch:
                 match_score = self.sub_dict.get((seqA[i-1], seqB[j-1]), -1)
                 match = self._align_matrix[i-1][j-1] + match_score
 
-                # Correct application of gap penalties
+                # Compute proper gap penalties
                 gapA = max(self._align_matrix[i-1][j] + self.gap_open, self._gapA_matrix[i-1][j] + self.gap_extend)
                 gapB = max(self._align_matrix[i][j-1] + self.gap_open, self._gapB_matrix[i][j-1] + self.gap_extend)
 
