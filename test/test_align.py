@@ -40,4 +40,15 @@ def test_nw_backtrace():
     """
     seq3, _ = read_fasta("./data/test_seq3.fa")
     seq4, _ = read_fasta("./data/test_seq4.fa")
-    pass
+    nw = NeedlemanWunsch("./substitution_matrices/BLOSUM62.mat", gap_open=-10, gap_extend=-1)
+    score, aligned_seq3, aligned_seq4 = nw.align(seq3, seq4)
+
+    # Expected results based on given example
+    expected_score = 17
+    expected_aligned_seq3 = "MAVHQLIRRP"
+    expected_aligned_seq4 = "M---QLIRHP"
+
+    # Assertions to validate alignment
+    assert score == expected_score, f"Expected alignment score {expected_score}, but got {score}."
+    assert aligned_seq3 == expected_aligned_seq3, f"Expected aligned sequence {expected_aligned_seq3}, but got {aligned_seq3}."
+    assert aligned_seq4 == expected_aligned_seq4, f"Expected aligned sequence {expected_aligned_seq4}, but got {aligned_seq4}."
