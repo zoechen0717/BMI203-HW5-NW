@@ -102,6 +102,9 @@ class NeedlemanWunsch:
         """
         Performs global sequence alignment using the Needleman-Wunsch Algorithm.
         """
+        if not seqA or not seqB:
+            return 0, "", ""
+
         self.seqA_align = ""
         self.seqB_align = ""
         self.alignment_score = 0
@@ -148,7 +151,6 @@ class NeedlemanWunsch:
                 else:
                     self._back[i][j] = 2  # Gap in seqA
 
-
         return self._backtrace()
 
     def _backtrace(self) -> Tuple[float, str, str]:
@@ -158,7 +160,7 @@ class NeedlemanWunsch:
         i, j = len(self._seqA), len(self._seqB)
         # Get final alignment score
         self.alignment_score = self._align_matrix[i][j]
-        # Create empty matrix for aligned seqences
+        # Create empty matrix for aligned sequences
         seqA_align, seqB_align = [], []
 
         # Trace back
