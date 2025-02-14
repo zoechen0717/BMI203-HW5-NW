@@ -165,16 +165,16 @@ class NeedlemanWunsch:
                 gapB = max(self._align_matrix[i][j-1] + self.gap_open, self._gapB_matrix[i][j-1] + self.gap_extend)
 
 
-        self._align_matrix[i][j] = max(match, gapA, gapB) # Find max score
-        if self._align_matrix[i][j] == match:
-            # 0 indicates a match/mismatch in alignment
-            self._back[i][j] = 0
+                self._align_matrix[i][j] = max(match, gapA, gapB) # Find max score
+                if self._align_matrix[i][j] == match:
+                    # 0 indicates a match/mismatch in alignment
+                    self._back[i][j] = 0
                 elif self._align_matrix[i][j] == gapA:
-            # 1 indicates a gap in seqB
-            self._back[i][j] = 1
+                    # 1 indicates a gap in seqB
+                    self._back[i][j] = 1
                 else:
-            # 2 indicates a gap in seqA
-            self._back[i][j] = 2
+                    # 2 indicates a gap in seqA
+                    self._back[i][j] = 2
 
         return self._backtrace()
 
