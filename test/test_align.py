@@ -22,7 +22,7 @@ def test_nw_alignment():
     assert nw._gapA_matrix is not None
     assert nw._gapB_matrix is not None
 
-            expected_align_matrix = np.array([
+    expected_align_matrix = np.array([
         [0, -10, -11, -12],
         [-10, 5, -5, -6],
         [-11, -5, -1, -2],
