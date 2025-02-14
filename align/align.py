@@ -107,7 +107,7 @@ class NeedlemanWunsch:
         self.alignment_score = 0
         self._seqA = seqA
         self._seqB = seqB
-        lenA, lenB = len(seqA), len(seqB)
+        m, n = len(seqA), len(seqB)
 
         # Initialize alignment and gap matrices
         self._align_matrix = np.zeros((m + 1, n + 1))
