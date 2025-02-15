@@ -25,7 +25,7 @@ def main():
     # Initialize Needleman-Wunsch with BLOSUM62 matrix and gap penalties
     nw = NeedlemanWunsch("./substitution_matrices/BLOSUM62.mat", gap_open=-10, gap_extend=-1)
 
-    # Perform alignments and store scores
+    # Looping perform alignments with human sequences and store scores
     scores = {}
     for species, seq in species_sequences.items():
         score, _, _ = nw.align(hs_seq, seq)
@@ -37,7 +37,6 @@ def main():
     # Sort species by similarity (highest score first)
     sorted_species = sorted(scores.items(), key=lambda x: x[1], reverse=True)
     # Print sorted species and scores
-    print("Ranking species by similarity to human BRD2...")
     for species, score in sorted_species:
         print(f"{species}: Alignment score = {score:.2f}")
 
